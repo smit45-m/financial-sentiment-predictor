@@ -54,6 +54,9 @@ def _ensure_models_loaded() -> None:
 
     logger.info("Lazy-loading models from %s …", MODELS_DIR)
 
+    import os
+    is_render = os.environ.get("RENDER") == "true"
+
     if MODELS_DIR.exists():
         try:
             loaded_classical = predictor.load_classical_models(str(MODELS_DIR))
@@ -61,15 +64,18 @@ def _ensure_models_loaded() -> None:
         except Exception as exc:
             logger.error("Failed to load classical models: %s", exc)
 
-        try:
-            predictor.load_bilstm(str(MODELS_DIR))
-        except Exception as exc:
-            logger.error("Failed to load BiLSTM: %s", exc)
+        if not is_render:
+            try:
+                predictor.load_bilstm(str(MODELS_DIR))
+            except Exception as exc:
+                logger.error("Failed to load BiLSTM: %s", exc)
 
-        try:
-            predictor.load_finbert()
-        except Exception as exc:
-            logger.error("Failed to load FinBERT: %s", exc)
+            try:
+                predictor.load_finbert()
+            except Exception as exc:
+                logger.error("Failed to load FinBERT: %s", exc)
+        else:
+            logger.warning("Render deployment detected. Skipping heavy DL models (BiLSTM & FinBERT) to prevent OOM.")
     else:
         logger.warning("Model directory %s does not exist.", MODELS_DIR)
 
