@@ -215,7 +215,7 @@ if STATIC_DIR.exists():
 @app.get("/health", tags=["System"])
 async def health_check() -> dict[str, Any]:
     """Health check with model load status."""
-    _ensure_models_loaded()
+    # Do NOT call _ensure_models_loaded() here, otherwise Docker healthchecks timeout!
     available = predictor.get_available_models()
     return {
         "status": "healthy",
