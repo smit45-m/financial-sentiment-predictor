@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Sentiment Analyzer | AI Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --bg-card: rgba(20, 20, 20, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-glow: rgba(56, 189, 248, 0.15);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #38bdf8;
+            --accent-purple: #c084fc;
+            --positive: #10b981;
+            --negative: #ef4444;
+            --neutral: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Glowing Background Orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            animation: float 20s infinite ease-in-out alternate;
+        }
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: rgba(56, 189, 248, 0.15);
+            top: -100px;
+            left: -100px;
+        }
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: rgba(139, 92, 246, 0.15);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+        .orb-3 {
+            width: 300px;
+            height: 300px;
+            background: rgba(16, 185, 129, 0.1);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 50px) scale(1.1); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--accent-blue) 0%, #818cf8 50%, var(--accent-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .glass-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 3rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-main);
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            color: var(--text-main);
+            padding: 1.5rem;
+            font-size: 1.1rem;
+            resize: vertical;
+            min-height: 150px;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
+        }
+
+        .examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .example-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.5rem 1.25rem;
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .example-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        select option {
+            background: var(--bg-dark);
+            color: var(--text-main);
+        }
+
+        select:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .btn-analyze {
+            flex: 1;
+            background: linear-gradient(135deg, var(--accent-blue), #818cf8);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn-analyze:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(56, 189, 248, 0.5);
+            background: linear-gradient(135deg, #7dd3fc, #a5b4fc);
+        }
+
+        .btn-analyze:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .results {
+            display: none;
+            margin-top: 3rem;
+            padding-top: 3rem;
+            border-top: 1px solid var(--border-color);
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .model-name-badge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: linear-gradient(90deg, var(--accent-blue), #818cf8);
+            color: white;
+            padding: 6px 16px;
+            border-bottom-right-radius: 16px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .card-center {
+            text-align: center;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .sentiment-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .sentiment-positive {
+            color: var(--positive);
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+        .sentiment-negative {
+            color: var(--negative);
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+        }
+        .sentiment-neutral {
+            color: var(--neutral);
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .confidence-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: white;
+            margin-top: 1rem;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .prob-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .prob-row:first-of-type {
+            border-top: none;
+        }
+
+        .prob-label-text {
+            font-weight: 500;
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .prob-pct-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .loader {
+            display: none;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .error-msg {
+            color: var(--negative);
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            display: none;
+            text-align: center;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Ambient Orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="container">
+        <header>
+            <h1>Financial Sentiment AI</h1>
+            <p class="subtitle">Next-gen institutional-grade market intelligence, powered by FinBERT & Classical ML engines.</p>
+        </header>
+
+        <main class="glass-panel">
+            <div class="input-group">
+                <label for="text-input">Inject Financial Sequence</label>
+                <textarea id="text-input" placeholder="Enter an earnings call excerpt, SEC filing, or financial news headline..."></textarea>
+                
+                <div class="examples">
+                    <button class="example-btn" onclick="setExample(0)">Bullish Earnings</button>
+                    <button class="example-btn" onclick="setExample(1)">Bearish Headwinds</button>
+                    <button class="example-btn" onclick="setExample(2)">Neutral Guidance</button>
+                    <button class="example-btn" onclick="setExample(3)">Supply Chain Issues</button>
+                </div>
+            </div>
+
+            <div class="controls">
+                <select id="model-select">
+                    <option value="finbert">FinBERT (Transformer)</option>
+                    <option value="xgboost">XGBoost (Classical ML)</option>
+                    <option value="logistic_regression">Logistic Regression</option>
+                    <option value="all">🌌 Compare All Engines</option>
+                </select>
+                
+                <button class="btn-analyze" id="analyze-btn" onclick="analyzeSentiment()">
+                    INITIATE ANALYSIS
+                    <div class="loader" id="loader"></div>
+                </button>
+            </div>
+
+            <div id="error-msg" class="error-msg"></div>
+            
+            <div id="results" class="results">
+                <div class="results-grid" id="results-grid">
+                    <!-- Results injected here by JS -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // =====================================================================
+        // CONFIGURATION: Set this to your deployed Render URL!
+        // Example: const API_BASE_URL = "https://financial-sentiment-api.onrender.com";
+        // =====================================================================
+        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:8000' 
+            : 'https://financial-sentiment-api.onrender.com'; // <--- REPLACE THIS LATER
+
+        const examples = [
+            "Revenue exceeded expectations with a 23% year-over-year increase, driven by strong enterprise cloud adoption and higher software margins.",
+            "Operating margins contracted significantly due to rising material costs and unfavorable foreign exchange headwinds during the quarter.",
+            "The company maintained its full-year EPS guidance of $4.20 to $4.40, assuming current macro conditions persist.",
+            "Production delays at key manufacturing facilities will negatively impact Q3 deliveries, though long-term demand remains robust."
+        ];
+
+        function setExample(index) {
+            document.getElementById('text-input').value = examples[index];
+        }
+
+        async function analyzeSentiment() {
+            const text = document.getElementById('text-input').value.trim();
+            const model = document.getElementById('model-select').value;
+            const btn = document.getElementById('analyze-btn');
+            const loader = document.getElementById('loader');
+            const resultsDiv = document.getElementById('results');
+            const resultsGrid = document.getElementById('results-grid');
+            const errorDiv = document.getElementById('error-msg');
+
+            if (!text) {
+                alert("Please enter a financial sequence to analyze.");
+                return;
+            }
+
+            // UI State
+            btn.disabled = true;
+            loader.style.display = 'inline-block';
+            resultsDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            resultsGrid.innerHTML = '';
+
+            try {
+                let url, body;
+                if (model === 'all') {
+                    url = `${API_BASE_URL}/predict/all`;
+                    body = { text: text };
+                } else {
+                    url = `${API_BASE_URL}/predict`;
+                    body = { text: text, model: model };
+                }
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) throw new Error("API request failed. Ensure the FastAPI backend is running.");
+
+                const data = await response.json();
+                
+                if (model === 'all') {
+                    for (const [modName, res] of Object.entries(data.predictions || data)) {
+                        if (res.error) continue;
+                        resultsGrid.appendChild(createResultCard(modName, res));
+                    }
+                } else {
+                    resultsGrid.appendChild(createResultCard(model, data));
+                }
+                
+                resultsDiv.style.display = 'block';
+
+            } catch (err) {
+                errorDiv.textContent = `Connection Error: ${err.message}. Make sure you updated API_BASE_URL in the HTML to your live Render URL!`;
+                errorDiv.style.display = 'block';
+                
+                // Fallback mock data for demo if backend is dead
+                const mockRes = {
+                    sentiment: "positive", confidence: 0.92,
+                    probabilities: { negative: 0.05, neutral: 0.03, positive: 0.92 }
+                };
+                resultsGrid.appendChild(createResultCard("Demo Engine (Fallback)", mockRes));
+                resultsDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+
+        function createResultCard(modelName, data) {
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            
+            const p = data.probabilities;
+            const formatName = modelName.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+            const posColor = 'var(--positive)';
+            const neuColor = 'var(--neutral)';
+            const negColor = 'var(--negative)';
+
+            card.innerHTML = `
+                <div class="model-name-badge">${formatName}</div>
+                <div class="card-center">
+                    <span class="sentiment-badge sentiment-${data.sentiment}">
+                        ${data.sentiment}
+                    </span>
+                    <div class="confidence-value">${(data.confidence * 100).toFixed(2)}%</div>
+                </div>
+                
+                <div>
+                    <div class="prob-row">
+                        <span class="prob-label-text">Positive</span>
+                        <span class="prob-pct-text" style="color: ${posColor}">${(p.positive * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="prob-row">
+                        <span class="prob-label-text">Neutral</span>
+                        <span class="prob-pct-text" style="color: ${neuColor}">${(p.neutral * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="prob-row">
+                        <span class="prob-label-text">Negative</span>
+                        <span class="prob-pct-text" style="color: ${negColor}">${(p.negative * 100).toFixed(1)}%</span>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+    </script>
+</body>
+</html>

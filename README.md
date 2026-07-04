@@ -50,7 +50,7 @@ Trained and evaluated on the [Financial PhraseBank dataset](https://huggingface.
 
 ## 🚀 Quick Start
 
-### 1. Local Development
+### 1. Local Development (Backend)
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/financial-sentiment-predictor.git
@@ -61,21 +61,33 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-# Run EDA (generates plots in outputs/figures/)
-python -m scripts.eda
-
-# Train all models
-python -m scripts.train
-
 # Start the API server
 uvicorn app.main:app --reload
 ```
-Navigate to `http://localhost:8000` to view the UI.
+The FastAPI backend will run at `http://localhost:8000`.
 
-### 2. Docker Deployment
-```bash
-docker-compose up --build
-```
+### 2. Local Development (Frontend)
+The frontend is a standalone, decoupled HTML/JS application located in the `frontend/` directory.
+1. Open `frontend/index.html` in your browser.
+2. By default, it will detect `localhost` and point its requests to `http://localhost:8000`.
+
+---
+
+## 🌍 Production Deployment
+
+This project uses a modern decoupled architecture.
+
+### 1. Deploy the Backend (FastAPI) to Render / AWS App Runner
+The backend is fully Dockerized.
+- **Render**: Create a new "Web Service", connect your GitHub repo, and Render will automatically detect the `Dockerfile` and build it.
+- **Environment**: You must set `PORT=8000`.
+
+### 2. Deploy the Frontend (UI) to Vercel / Netlify
+1. Log in to [Vercel](https://vercel.com/) and click **Add New Project**.
+2. Import your GitHub repository.
+3. In the Vercel configuration, set the **Root Directory** to `frontend`.
+4. Click **Deploy**.
+5. *Important*: Once your backend is deployed and gives you a live URL, open `frontend/index.html` in your codebase, change the `API_BASE_URL` constant on line ~275 to your live backend URL, commit, and push. Vercel will instantly update!
 
 ---
 
