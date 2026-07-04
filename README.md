@@ -6,6 +6,8 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-005571?logo=fastapi)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?logo=docker&logoColor=white)
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://financial-sentiment-predictor-s6.streamlit.app/)
+
 A production-quality machine learning system that predicts market sentiment from financial texts, earnings call transcripts, and news headlines. 
 
 Built to demonstrate end-to-end ML engineering, this project compares **Classical ML**, **Deep Learning (BiLSTM)**, and **Transformer (FinBERT)** architectures, deployed via a high-performance FastAPI backend with a modern glassmorphism frontend UI.
