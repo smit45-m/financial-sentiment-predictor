@@ -1,0 +1,54 @@
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+*.egg-info
+dist
+build
+.eggs
+
+venv
+.venv
+env
+
+.vscode
+.idea
+*.swp
+*.swo
+
+wandb
+mlruns
+
+data/raw
+data/processed
+*.csv
+*.parquet
+!data/.gitkeep
+
+outputs
+figures
+*.png
+*.jpg
+!static/*.png
+!static/*.jpg
+
+.env
+.env.local
+
+.DS_Store
+Thumbs.db
+
+.dockerignore
+.vercel
+.ipynb_checkpoints
+
+# ----------------------------------------------------
+# VERCEL SPECIFIC TWEAKS:
+# 1. Ignore root requirements.txt so Vercel builds with api/requirements.txt
+requirements.txt
+
+# 2. Ignore heavy deep learning models, but DO NOT ignore .joblib models!
+*.pt
+*.pth
+*.h5
+xgboost_model.joblib

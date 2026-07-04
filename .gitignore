@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ML Artifacts — keep saved_models/ but exclude heavy files
+*.pt
+*.pth
+*.pkl
+*.h5
+wandb/
+mlruns/
+
+# Data
+data/raw/
+data/processed/
+*.csv
+*.parquet
+!data/.gitkeep
+
+# Outputs
+outputs/
+figures/
+*.png
+*.jpg
+!static/*.png
+!static/*.jpg
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Vercel
+.vercel/
+
+# Jupyter
+.ipynb_checkpoints/
+
+.vercel
+.env*

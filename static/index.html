@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Sentiment Analyzer | ML Portfolio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .glass-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        textarea {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            padding: 1rem;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .example-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .example-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        select {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .btn-analyze {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-analyze:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            display: none;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .result-card {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .model-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .sentiment-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .sentiment-positive { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .sentiment-negative { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .sentiment-neutral { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+        .prob-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .prob-segment {
+            height: 100%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .segment-neg { background: var(--accent-red); }
+        .segment-neu { background: var(--accent-yellow); }
+        .segment-pos { background: var(--accent-green); }
+
+        .prob-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .loader {
+            display: none;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .error-msg {
+            color: #f87171;
+            margin-top: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Financial Sentiment Analyzer</h1>
+            <p class="subtitle">Multi-model NLP system predicting market impact from earnings calls & financial news</p>
+        </header>
+
+        <main class="glass-panel">
+            <div class="input-group">
+                <label for="text-input">Financial Text Input</label>
+                <textarea id="text-input" placeholder="Enter an earnings call excerpt, financial news headline, or tweet..."></textarea>
+                
+                <div class="examples">
+                    <button class="example-btn" onclick="setExample(0)">Strong Earnings</button>
+                    <button class="example-btn" onclick="setExample(1)">Margin Pressure</button>
+                    <button class="example-btn" onclick="setExample(2)">Guidance Maintained</button>
+                    <button class="example-btn" onclick="setExample(3)">Supply Chain Issues</button>
+                </div>
+            </div>
+
+            <div class="controls">
+                <select id="model-select">
+                    <option value="finbert">FinBERT (Transformer)</option>
+                    <option value="xgboost">XGBoost (Classical ML)</option>
+                    <option value="logistic_regression">Logistic Regression</option>
+                    <option value="all">Compare All Models</option>
+                </select>
+                
+                <button class="btn-analyze" id="analyze-btn" onclick="analyzeSentiment()">
+                    Analyze Sentiment
+                    <div class="loader" id="loader"></div>
+                </button>
+            </div>
+
+            <div id="error-msg" class="error-msg"></div>
+            
+            <div id="results" class="results">
+                <!-- Results injected here by JS -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const examples = [
+            "Revenue exceeded expectations with a 23% year-over-year increase, driven by strong enterprise cloud adoption and higher software margins.",
+            "Operating margins contracted significantly due to rising material costs and unfavorable foreign exchange headwinds during the quarter.",
+            "The company maintained its full-year EPS guidance of $4.20 to $4.40, assuming current macro conditions persist.",
+            "Production delays at key manufacturing facilities will negatively impact Q3 deliveries, though long-term demand remains robust."
+        ];
+
+        function setExample(index) {
+            document.getElementById('text-input').value = examples[index];
+        }
+
+        async function analyzeSentiment() {
+            const text = document.getElementById('text-input').value.trim();
+            const model = document.getElementById('model-select').value;
+            const btn = document.getElementById('analyze-btn');
+            const loader = document.getElementById('loader');
+            const resultsDiv = document.getElementById('results');
+            const errorDiv = document.getElementById('error-msg');
+
+            if (!text) {
+                alert("Please enter some text to analyze.");
+                return;
+            }
+
+            // UI State
+            btn.disabled = true;
+            loader.style.display = 'inline-block';
+            resultsDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            resultsDiv.innerHTML = '';
+
+            try {
+                let url, body;
+                if (model === 'all') {
+                    url = '/predict/all';
+                    body = { text: text };
+                } else {
+                    url = '/predict';
+                    body = { text: text, model: model };
+                }
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) throw new Error("API request failed. Is the server running?");
+
+                const data = await response.json();
+                
+                if (model === 'all') {
+                    for (const [modName, res] of Object.entries(data)) {
+                        if (res.error) continue;
+                        resultsDiv.appendChild(createResultCard(modName, res));
+                    }
+                } else {
+                    resultsDiv.appendChild(createResultCard(model, data));
+                }
+                
+                resultsDiv.style.display = 'block';
+
+            } catch (err) {
+                errorDiv.textContent = err.message + " (Note: If running statically without backend, predictions won't work.)";
+                errorDiv.style.display = 'block';
+                
+                // Fallback mock data for demo if backend is dead
+                const mockRes = {
+                    sentiment: "positive", confidence: 0.92,
+                    probabilities: { negative: 0.05, neutral: 0.03, positive: 0.92 }
+                };
+                resultsDiv.appendChild(createResultCard("Demo Fallback", mockRes));
+                resultsDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+
+        function createResultCard(modelName, data) {
+            const card = document.createElement('div');
+            card.className = 'result-card';
+            
+            const p = data.probabilities;
+            const formatName = modelName.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+            card.innerHTML = `
+                <div class="result-header">
+                    <span class="model-name">${formatName}</span>
+                    <span class="sentiment-badge sentiment-${data.sentiment}">
+                        ${data.sentiment} (${(data.confidence * 100).toFixed(1)}%)
+                    </span>
+                </div>
+                <div class="prob-bar">
+                    <div class="prob-segment segment-neg" style="width: 0%"></div>
+                    <div class="prob-segment segment-neu" style="width: 0%"></div>
+                    <div class="prob-segment segment-pos" style="width: 0%"></div>
+                </div>
+                <div class="prob-labels">
+                    <span>Neg: ${(p.negative * 100).toFixed(1)}%</span>
+                    <span>Neu: ${(p.neutral * 100).toFixed(1)}%</span>
+                    <span>Pos: ${(p.positive * 100).toFixed(1)}%</span>
+                </div>
+            `;
+
+            // Trigger animation after append
+            setTimeout(() => {
+                card.querySelector('.segment-neg').style.width = `${p.negative * 100}%`;
+                card.querySelector('.segment-neu').style.width = `${p.neutral * 100}%`;
+                card.querySelector('.segment-pos').style.width = `${p.positive * 100}%`;
+            }, 50);
+
+            return card;
+        }
+    </script>
+</body>
+</html>

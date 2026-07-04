@@ -1,0 +1,28 @@
+# ─────────────────────────────────────────────────────────────
+# Financial Sentiment Predictor — Docker Compose
+# ─────────────────────────────────────────────────────────────
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: financial-sentiment-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount model artefacts so they survive rebuilds
+      - ./saved_models:/app/saved_models:ro
+      # Mount static frontend for live updates during dev
+      - ./static:/app/static:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=info
+      - MODEL_DIR=/app/saved_models
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
